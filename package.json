@@ -26,7 +26,7 @@
     "e2e:ui": "playwright test --ui",
     "knip": "knip",
     "db:generate": "drizzle-kit generate",
-    "check": "pnpm run typecheck && pnpm run lint && pnpm run format:check && pnpm run test:coverage && pnpm run knip",
+    "check": "pnpm run typecheck && pnpm run lint && pnpm run format:check && pnpm run test:run && pnpm run knip",
     "prepare": "husky || true"
   },
   "pnpm": {
