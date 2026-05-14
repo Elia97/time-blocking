@@ -31,10 +31,8 @@
     "@hookform/resolvers",
     "react-hook-form",
     "zod",
-    "date-fns",
     "date-fns-tz",
     "rrule",
-    "zustand",
     "@tauri-apps/api",
     "@types/mocha",
     "@wdio/local-runner"
