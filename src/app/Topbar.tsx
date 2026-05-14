@@ -17,48 +17,54 @@ export function Topbar() {
   const openCreateDialog = useEventDialog((s) => s.openCreateDialog)
 
   return (
-    <header className="bg-background border-border flex h-14 items-center gap-3 border-b px-4">
-      <h1 className="text-base font-semibold tracking-tight">{formatWeekRange(anchorDate)}</h1>
-      <div className="flex items-center gap-1">
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Previous week"
-          onClick={goToPrevWeek}
-          className="size-8"
-        >
-          <ChevronLeft className="size-4" />
-        </Button>
-        <Button variant="outline" size="sm" onClick={goToToday}>
-          Today
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Next week"
-          onClick={goToNextWeek}
-          className="size-8"
-        >
-          <ChevronRight className="size-4" />
-        </Button>
-      </div>
-      <Separator orientation="vertical" className="h-6" />
-      <div className="bg-muted text-muted-foreground inline-flex h-8 items-center rounded-md p-1 text-xs">
-        {views.map((view, index) => (
-          <button
-            key={view}
-            disabled={index !== 1}
-            className={
-              index === 1
-                ? "bg-background text-foreground rounded px-3 py-1 font-medium shadow-sm"
-                : "px-3 py-1"
-            }
+    <header className="bg-background border-border grid h-14 grid-cols-3 items-center border-b px-4">
+      <div className="flex items-center gap-3 justify-self-start">
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Previous week"
+            onClick={goToPrevWeek}
+            className="size-8"
           >
-            {view}
-          </button>
-        ))}
+            <ChevronLeft className="size-4" />
+          </Button>
+          <Button variant="outline" size="sm" onClick={goToToday}>
+            Today
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Next week"
+            onClick={goToNextWeek}
+            className="size-8"
+          >
+            <ChevronRight className="size-4" />
+          </Button>
+        </div>
+        <Separator orientation="vertical" className="h-6" />
+        <div className="bg-muted text-muted-foreground inline-flex h-8 items-center rounded-md p-1 text-xs">
+          {views.map((view, index) => (
+            <button
+              key={view}
+              disabled={index !== 1}
+              className={
+                index === 1
+                  ? "bg-background text-foreground rounded px-3 py-1 font-medium shadow-sm"
+                  : "px-3 py-1"
+              }
+            >
+              {view}
+            </button>
+          ))}
+        </div>
       </div>
-      <div className="ml-auto flex items-center gap-2">
+
+      <h1 className="justify-self-center text-base font-semibold tracking-tight tabular-nums">
+        {formatWeekRange(anchorDate)}
+      </h1>
+
+      <div className="flex items-center gap-2 justify-self-end">
         <Button size="sm" variant="default" onClick={() => openCreateDialog()}>
           <Plus className="size-4" />
           New event
