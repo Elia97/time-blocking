@@ -22,7 +22,7 @@ Status: **Phase 0 (scaffold) complete**, Phase 1 (calendar core) is the active w
 - `src/stores/` — Zustand stores (UI state only; server data belongs in TanStack Query).
 - `src-tauri/migrations/` — SQL migrations applied at app boot by `tauri-plugin-sql`.
 - `src-tauri/src/lib.rs` — Tauri builder + plugin registration + the `Migration { version, ... }` list.
-- `e2e/specs/` — WebdriverIO + tauri-driver smoke tests against the real release binary.
+- `tests/playwright/` — Playwright smoke specs that hit `pnpm dev` (Vite + React) with Tauri IPC mocked via `src/test/e2e-mock.ts` (gated by `VITE_E2E=true`). No native build or WebDriver needed.
 
 ## Database workflow
 
@@ -42,18 +42,18 @@ pnpm tauri build       # release binary in src-tauri/target/release
 pnpm db:generate       # regenerate SQL migrations from Drizzle schema
 
 pnpm typecheck         # tsc --noEmit (src)
-pnpm typecheck:e2e     # tsc --noEmit for e2e specs + wdio.conf.ts
 pnpm lint              # ESLint (no fix)
 pnpm format:check      # Prettier check (used by CI / pre-commit)
 pnpm test              # Vitest watch
 pnpm test:run          # Vitest single run
 pnpm test:coverage     # Vitest with v8 coverage (80% threshold enforced)
 pnpm knip              # unused files / exports / deps
-pnpm check             # aggregate: typecheck + typecheck:e2e + lint + format:check + test:coverage + knip
-pnpm e2e:build && pnpm e2e   # build release binary, then drive it with tauri-driver
+pnpm check             # aggregate: typecheck + lint + format:check + test:coverage + knip
+pnpm e2e               # Playwright against Vite dev server with mocked Tauri IPC
+pnpm e2e:ui            # Playwright UI mode for debugging
 ```
 
-Run a single Vitest file: `pnpm test:run path/to/file.test.ts` (or `-t "name"` to filter). Run a single WDIO spec: `pnpm e2e --spec e2e/specs/foo.spec.ts`.
+Run a single Vitest file: `pnpm test:run path/to/file.test.ts` (or `-t "name"` to filter). Run a single Playwright spec: `pnpm e2e tests/playwright/foo.spec.ts` (or `--grep "name"`).
 
 `pnpm check` is what `.husky/pre-push` runs — if it passes locally, push will succeed.
 
