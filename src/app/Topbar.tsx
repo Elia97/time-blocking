@@ -4,16 +4,17 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { ThemeToggle } from "@/app/ThemeToggle"
 import { formatWeekRange } from "@/lib/date"
-import { useCalendarUiStore } from "@/stores/calendarUiStore"
+import { useEventDialog } from "@/stores/eventDialogStore"
+import { useWeekNavigation } from "@/stores/weekNavigationStore"
 
 const views = ["Day", "Week", "Month"] as const
 
 export function Topbar() {
-  const anchorDate = useCalendarUiStore((s) => s.anchorDate)
-  const goToPrevWeek = useCalendarUiStore((s) => s.goToPrevWeek)
-  const goToNextWeek = useCalendarUiStore((s) => s.goToNextWeek)
-  const goToToday = useCalendarUiStore((s) => s.goToToday)
-  const openCreateDialog = useCalendarUiStore((s) => s.openCreateDialog)
+  const anchorDate = useWeekNavigation((s) => s.anchorDate)
+  const goToPrevWeek = useWeekNavigation((s) => s.goToPrevWeek)
+  const goToNextWeek = useWeekNavigation((s) => s.goToNextWeek)
+  const goToToday = useWeekNavigation((s) => s.goToToday)
+  const openCreateDialog = useEventDialog((s) => s.openCreateDialog)
 
   return (
     <header className="bg-background border-border flex h-14 items-center gap-3 border-b px-4">

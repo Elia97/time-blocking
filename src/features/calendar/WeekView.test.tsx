@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { screen, within } from "@testing-library/react"
 
 import { renderWithQueryClient } from "@/test/render"
-import { useCalendarUiStore } from "@/stores/calendarUiStore"
+import { useWeekNavigation } from "@/stores/weekNavigationStore"
 import { startOfCalendarWeek } from "@/lib/date"
 import type { EventRow } from "@/db/schema"
 import * as useEventsModule from "./useEvents"
@@ -46,7 +46,7 @@ describe("WeekView", () => {
   beforeEach(() => {
     vi.useFakeTimers()
     vi.setSystemTime(FIXED_NOW)
-    useCalendarUiStore.setState({ anchorDate: startOfCalendarWeek(FIXED_NOW) })
+    useWeekNavigation.setState({ anchorDate: startOfCalendarWeek(FIXED_NOW) })
   })
 
   afterEach(() => {

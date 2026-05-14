@@ -3,7 +3,8 @@ import { screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 
 import { renderWithProviders } from "@/test/render"
-import { useCalendarUiStore } from "@/stores/calendarUiStore"
+import { useEventDialog } from "@/stores/eventDialogStore"
+import { useWeekNavigation } from "@/stores/weekNavigationStore"
 import { startOfCalendarWeek } from "@/lib/date"
 import { Topbar } from "./Topbar"
 
@@ -13,7 +14,8 @@ describe("Topbar", () => {
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
     vi.setSystemTime(FIXED_NOW)
-    useCalendarUiStore.setState({ anchorDate: startOfCalendarWeek(FIXED_NOW) })
+    useWeekNavigation.setState({ anchorDate: startOfCalendarWeek(FIXED_NOW) })
+    useEventDialog.setState({ dialogState: null })
   })
 
   afterEach(() => {
@@ -37,7 +39,7 @@ describe("Topbar", () => {
     const user = userEvent.setup()
     renderWithProviders(<Topbar />)
     await user.click(screen.getByRole("button", { name: /new event/i }))
-    expect(useCalendarUiStore.getState().dialogState).toEqual({
+    expect(useEventDialog.getState().dialogState).toEqual({
       mode: "create",
       defaults: undefined,
     })
@@ -52,22 +54,22 @@ describe("Topbar", () => {
     const user = userEvent.setup()
     renderWithProviders(<Topbar />)
     await user.click(screen.getByRole("button", { name: /next week/i }))
-    expect(useCalendarUiStore.getState().anchorDate.getDate()).toBe(18)
+    expect(useWeekNavigation.getState().anchorDate.getDate()).toBe(18)
   })
 
   it("rewinds the anchor by one week when clicking Previous", async () => {
     const user = userEvent.setup()
     renderWithProviders(<Topbar />)
     await user.click(screen.getByRole("button", { name: /previous week/i }))
-    expect(useCalendarUiStore.getState().anchorDate.getDate()).toBe(4)
+    expect(useWeekNavigation.getState().anchorDate.getDate()).toBe(4)
   })
 
   it("snaps back to this week when clicking Today", async () => {
     const user = userEvent.setup()
-    useCalendarUiStore.getState().goToNextWeek()
-    useCalendarUiStore.getState().goToNextWeek()
+    useWeekNavigation.getState().goToNextWeek()
+    useWeekNavigation.getState().goToNextWeek()
     renderWithProviders(<Topbar />)
     await user.click(screen.getByRole("button", { name: "Today" }))
-    expect(useCalendarUiStore.getState().anchorDate.getDate()).toBe(11)
+    expect(useWeekNavigation.getState().anchorDate.getDate()).toBe(11)
   })
 })

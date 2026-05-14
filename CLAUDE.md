@@ -15,14 +15,20 @@ Status: **Phase 0 (scaffold) complete**, Phase 1 (calendar core) is the active w
 ## Layout
 
 - `src/app/` — root layout: `Providers` (TanStack Query + Tooltip + next-themes), `AppShell`, `Sidebar`, `Topbar`.
-- `src/features/<feature>/` — one folder per feature (calendar, events, categories, tags, pomodoro, tracking, stats, google-sync). New feature code lives here, not in `src/components/`.
+- `src/features/<feature>/` — one folder per feature, split by responsibility:
+  - `calendar/` — `WeekView.tsx` (thin orchestrator), `components/` (pure rendering: `WeekHeader`, `TimeGutter`, `AllDayStrip`, `DayColumn`), `hooks/` (`useNowTicker`, `useWeekLayout`, `useCalendarWeek`, `useEventDrag`, `useEventResize`), pure logic in `layout.ts` / `overlap.ts` / `dragMath.ts`, data hook in `useEvents.ts`.
+  - `events/` — `schema.ts` (zod only), `transforms.ts` (row ↔ form), `factories.ts` (NewEvent / Partial<EventRow> builders), `mutations.ts` (TanStack Query), `EventDialog.tsx` (wrapper) + `EventDialogForm.tsx` (form body).
 - `src/components/ui/` — shadcn primitives, copied in and editable. Exempt from `react-refresh/only-export-components`.
 - `src/db/schema.ts` — Drizzle schema, **single source of truth** for table types.
 - `src/db/client.ts` — Drizzle proxy bridging `drizzle-orm/sqlite-proxy` to `@tauri-apps/plugin-sql`. All queries go through this; TanStack Query wraps it as the cache layer.
-- `src/stores/` — Zustand stores (UI state only; server data belongs in TanStack Query).
+- `src/stores/` — Zustand stores split by domain: `weekNavigationStore` (anchor date + nav actions) and `eventDialogStore` (create/edit dialog state). Components subscribe only to the slice they need.
 - `src-tauri/migrations/` — SQL migrations applied at app boot by `tauri-plugin-sql`.
 - `src-tauri/src/lib.rs` — Tauri builder + plugin registration + the `Migration { version, ... }` list.
 - `tests/playwright/` — Playwright smoke specs that hit `pnpm dev` (Vite + React) with Tauri IPC mocked via `src/test/e2e-mock.ts` (gated by `VITE_E2E=true`). No native build or WebDriver needed.
+
+## Separation of concerns
+
+Pure logic (no DOM, no Tauri, no React state) lives in `*.ts` files alongside the feature: `dragMath`, `overlap`, `layout` in calendar; `schema`, `transforms`, `factories` in events. These are 100% unit-tested and exempt from "wrapper" coverage exclusions. Hooks orchestrate side effects (TanStack Query, dnd-kit, pointer events, timers). Components are display-only and don't carry business rules.
 
 ## Database workflow
 

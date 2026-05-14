@@ -2,8 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 
-import { useCalendarUiStore } from "@/stores/calendarUiStore"
-import { startOfCalendarWeek } from "@/lib/date"
+import { useEventDialog } from "@/stores/eventDialogStore"
 import { renderWithQueryClient } from "@/test/render"
 import { EventDialog } from "./EventDialog"
 import * as mutationsModule from "./mutations"
@@ -31,10 +30,7 @@ describe("EventDialog", () => {
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
     vi.setSystemTime(FIXED_NOW)
-    useCalendarUiStore.setState({
-      anchorDate: startOfCalendarWeek(FIXED_NOW),
-      dialogState: null,
-    })
+    useEventDialog.setState({ dialogState: null })
   })
 
   afterEach(() => {
@@ -50,7 +46,7 @@ describe("EventDialog", () => {
 
   it("renders create mode with prefilled defaults", () => {
     stubMutations()
-    useCalendarUiStore.getState().openCreateDialog({
+    useEventDialog.getState().openCreateDialog({
       startAt: new Date(2026, 4, 14, 14, 0).getTime(),
       endAt: new Date(2026, 4, 14, 14, 30).getTime(),
     })
@@ -64,7 +60,7 @@ describe("EventDialog", () => {
   it("shows a validation error when title is empty on submit", async () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
     stubMutations()
-    useCalendarUiStore.getState().openCreateDialog()
+    useEventDialog.getState().openCreateDialog()
     renderWithQueryClient(<EventDialog />)
 
     await user.click(screen.getByRole("button", { name: "Create" }))
@@ -74,7 +70,7 @@ describe("EventDialog", () => {
   it("submits a valid create form", async () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
     const mutateAsync = stubMutations()
-    useCalendarUiStore.getState().openCreateDialog({
+    useEventDialog.getState().openCreateDialog({
       startAt: new Date(2026, 4, 14, 14, 0).getTime(),
       endAt: new Date(2026, 4, 14, 14, 30).getTime(),
     })
@@ -87,13 +83,13 @@ describe("EventDialog", () => {
     const row = mutateAsync.mock.calls[0][0] as { title: string; allDay: number }
     expect(row.title).toBe("Standup")
     expect(row.allDay).toBe(0)
-    expect(useCalendarUiStore.getState().dialogState).toBeNull()
+    expect(useEventDialog.getState().dialogState).toBeNull()
   })
 
   it("hides time inputs when All day is toggled on", async () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
     stubMutations()
-    useCalendarUiStore.getState().openCreateDialog()
+    useEventDialog.getState().openCreateDialog()
     renderWithQueryClient(<EventDialog />)
 
     expect(screen.getByLabelText("Start")).toBeInTheDocument()
