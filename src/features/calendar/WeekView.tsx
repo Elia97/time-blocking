@@ -1,4 +1,19 @@
-import { useEffect, useMemo, useState, type MouseEvent } from "react"
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type MouseEvent,
+  type PointerEvent as ReactPointerEvent,
+} from "react"
+import {
+  DndContext,
+  PointerSensor,
+  useDroppable,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core"
 import { addDays, differenceInMinutes, format, isSameDay, startOfDay } from "date-fns"
 
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -8,8 +23,10 @@ import { cn } from "@/lib/utils"
 import { useCalendarUiStore } from "@/stores/calendarUiStore"
 import { DAY_HEIGHT_PX, HOUR_HEIGHT_PX, HOURS_PER_DAY, SLOT_HEIGHT_PX } from "./constants"
 import { EventBlock } from "./EventBlock"
+import { applyDragEnd, computeResizeRange } from "./dragMath"
 import { layoutOverlaps, type OverlapPosition } from "./overlap"
 import { useEvents } from "./useEvents"
+import { useUpdateEvent } from "@/features/events/mutations"
 
 type PositionedEvent = {
   event: EventRow
@@ -57,10 +74,21 @@ function allDayEventsForDay(day: Date, all: EventRow[]): EventRow[] {
   return all.filter((e) => e.allDay && e.endAt > dayStart && e.startAt < dayEnd)
 }
 
+type ResizeState = {
+  eventId: string
+  direction: "top" | "bottom"
+  source: { startAt: number; endAt: number }
+  startClientY: number
+  preview: { startAt: number; endAt: number }
+}
+
 export function WeekView() {
   const anchorDate = useCalendarUiStore((s) => s.anchorDate)
   const openCreateDialog = useCalendarUiStore((s) => s.openCreateDialog)
   const openEditDialog = useCalendarUiStore((s) => s.openEditDialog)
+  const updateEvent = useUpdateEvent()
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
 
   const { weekStart, weekEnd, weekDays } = useMemo(() => {
     const start = startOfCalendarWeek(anchorDate)
@@ -70,6 +98,17 @@ export function WeekView() {
 
   const { data: events = [] } = useEvents(weekStart, weekEnd)
 
+  const [resize, setResize] = useState<ResizeState | null>(null)
+
+  const displayedEvents = useMemo(() => {
+    if (!resize) return events
+    return events.map((e) =>
+      e.id === resize.eventId
+        ? { ...e, startAt: resize.preview.startAt, endAt: resize.preview.endAt }
+        : e,
+    )
+  }, [events, resize])
+
   const dayLayouts = useMemo(
     () =>
       weekDays.map((day) => {
@@ -78,11 +117,11 @@ export function WeekView() {
         return {
           day,
           dayStart,
-          positioned: buildDayLayout(dayStart, dayEnd, events),
-          allDay: allDayEventsForDay(day, events),
+          positioned: buildDayLayout(dayStart, dayEnd, displayedEvents),
+          allDay: allDayEventsForDay(day, displayedEvents),
         }
       }),
-    [weekDays, events],
+    [weekDays, displayedEvents],
   )
 
   const [now, setNow] = useState(() => new Date())
@@ -91,37 +130,104 @@ export function WeekView() {
     return () => clearInterval(id)
   }, [])
 
+  useEffect(() => {
+    if (!resize) return
+    const handleMove = (e: PointerEvent) => {
+      const delta = e.clientY - resize.startClientY
+      const next = computeResizeRange(resize.source, resize.direction, delta)
+      setResize((curr) => (curr ? { ...curr, preview: next } : curr))
+    }
+    const handleUp = () => {
+      const { eventId, preview, source } = resize
+      if (preview.startAt !== source.startAt || preview.endAt !== source.endAt) {
+        updateEvent.mutate({
+          id: eventId,
+          patch: {
+            startAt: preview.startAt,
+            endAt: preview.endAt,
+            dirty: 1,
+            updatedAt: Date.now(),
+          },
+        })
+      }
+      setResize(null)
+    }
+    window.addEventListener("pointermove", handleMove)
+    window.addEventListener("pointerup", handleUp)
+    return () => {
+      window.removeEventListener("pointermove", handleMove)
+      window.removeEventListener("pointerup", handleUp)
+    }
+  }, [resize, updateEvent])
+
+  const handleResizeStart = useCallback(
+    (event: EventRow, direction: "top" | "bottom", e: ReactPointerEvent) => {
+      setResize({
+        eventId: event.id,
+        direction,
+        source: { startAt: event.startAt, endAt: event.endAt },
+        startClientY: e.clientY,
+        preview: { startAt: event.startAt, endAt: event.endAt },
+      })
+    },
+    [],
+  )
+
+  const handleDragEnd = useCallback(
+    (e: DragEndEvent) => {
+      const dragged = e.active.data.current?.event as EventRow | undefined
+      const overDayStart = e.over?.data.current?.dayStart as number | undefined
+      if (!dragged) return
+      const patch = applyDragEnd(dragged, e.delta.y, overDayStart)
+      if (!patch) return
+      updateEvent.mutate({
+        id: patch.id,
+        patch: {
+          startAt: patch.startAt,
+          endAt: patch.endAt,
+          dirty: 1,
+          updatedAt: Date.now(),
+        },
+      })
+    },
+    [updateEvent],
+  )
+
   return (
-    <div className="bg-background border-border flex h-full flex-col overflow-hidden rounded-xl border">
-      <WeekHeader days={weekDays} now={now} />
-      <AllDayStrip
-        days={dayLayouts.map(({ day, allDay }) => ({ day, events: allDay }))}
-        onCreate={(day) => openCreateDialog({ startAt: startOfDay(day).getTime(), allDay: true })}
-        onEdit={openEditDialog}
-      />
-      <ScrollArea className="flex-1">
-        <div className="flex">
-          <TimeGutter />
-          <div
-            className="relative grid flex-1 grid-cols-7"
-            data-testid="week-grid"
-            style={{ height: `${DAY_HEIGHT_PX}px` }}
-          >
-            {dayLayouts.map(({ day, dayStart, positioned }) => (
-              <DayColumn
-                key={day.toISOString()}
-                day={day}
-                dayStart={dayStart}
-                positioned={positioned}
-                now={now}
-                onSlotClick={(startAt, endAt) => openCreateDialog({ startAt, endAt })}
-                onEventClick={openEditDialog}
-              />
-            ))}
+    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+      <div className="bg-background border-border flex h-full flex-col overflow-hidden rounded-xl border">
+        <WeekHeader days={weekDays} now={now} />
+        <AllDayStrip
+          days={dayLayouts.map(({ day, allDay }) => ({ day, events: allDay }))}
+          onCreate={(day) => openCreateDialog({ startAt: startOfDay(day).getTime(), allDay: true })}
+          onEdit={openEditDialog}
+        />
+        <ScrollArea className="flex-1">
+          <div className="flex">
+            <TimeGutter />
+            <div
+              className="relative grid flex-1 grid-cols-7"
+              data-testid="week-grid"
+              style={{ height: `${DAY_HEIGHT_PX}px` }}
+            >
+              {dayLayouts.map(({ day, dayStart, positioned }) => (
+                <DayColumn
+                  key={day.toISOString()}
+                  day={day}
+                  dayStart={dayStart}
+                  positioned={positioned}
+                  now={now}
+                  resizingEventId={resize?.eventId ?? null}
+                  onSlotClick={(startAt, endAt) => openCreateDialog({ startAt, endAt })}
+                  onEventClick={openEditDialog}
+                  onResizeStart={handleResizeStart}
+                />
+              ))}
+            </div>
           </div>
-        </div>
-      </ScrollArea>
-    </div>
+        </ScrollArea>
+      </div>
+    </DndContext>
   )
 }
 
@@ -237,13 +343,29 @@ type DayColumnProps = {
   dayStart: Date
   positioned: PositionedEvent[]
   now: Date
+  resizingEventId: string | null
   onSlotClick: (startAt: number, endAt: number) => void
   onEventClick: (event: EventRow) => void
+  onResizeStart: (event: EventRow, direction: "top" | "bottom", e: ReactPointerEvent) => void
 }
 
-function DayColumn({ day, dayStart, positioned, now, onSlotClick, onEventClick }: DayColumnProps) {
+function DayColumn({
+  day,
+  dayStart,
+  positioned,
+  now,
+  resizingEventId,
+  onSlotClick,
+  onEventClick,
+  onResizeStart,
+}: DayColumnProps) {
   const isToday = isSameDay(day, now)
   const nowOffsetPx = isToday ? minutesToPx(differenceInMinutes(now, dayStart)) : null
+
+  const { setNodeRef, isOver } = useDroppable({
+    id: `day-${format(day, "yyyy-MM-dd")}`,
+    data: { dayStart: dayStart.getTime() },
+  })
 
   const handleSlotClick = (e: MouseEvent<HTMLDivElement>) => {
     if ((e.target as HTMLElement).closest("[data-event-block]")) return
@@ -260,7 +382,12 @@ function DayColumn({ day, dayStart, positioned, now, onSlotClick, onEventClick }
     // Click-to-create on the column body; nested events/indicators are real buttons.
     // eslint-disable-next-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events
     <div
-      className={cn("border-border relative border-l", isToday && "bg-primary/4")}
+      ref={setNodeRef}
+      className={cn(
+        "border-border relative border-l",
+        isToday && "bg-primary/4",
+        isOver && "bg-accent/20",
+      )}
       data-day={format(day, "yyyy-MM-dd")}
       data-testid="day-column"
       onClick={handleSlotClick}
@@ -276,15 +403,16 @@ function DayColumn({ day, dayStart, positioned, now, onSlotClick, onEventClick }
       {positioned.map(({ event, topPx, heightPx, layout }) => (
         <EventBlock
           key={event.id}
-          title={event.title}
-          color={event.color}
+          event={event}
           topPx={topPx}
           heightPx={heightPx}
           column={layout.column}
           totalColumns={layout.totalColumns}
           startLabel={format(new Date(event.startAt), "HH:mm")}
           endLabel={format(new Date(event.endAt), "HH:mm")}
+          isResizing={resizingEventId === event.id}
           onClick={() => onEventClick(event)}
+          onResizeStart={(direction, e) => onResizeStart(event, direction, e)}
         />
       ))}
       {nowOffsetPx !== null && (

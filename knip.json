@@ -19,7 +19,6 @@
     "prettier-plugin-tailwindcss",
     "@vitest/coverage-v8",
     "@vitest/ui",
-    "@dnd-kit/core",
     "@dnd-kit/modifiers",
     "@dnd-kit/utilities",
     "date-fns-tz",

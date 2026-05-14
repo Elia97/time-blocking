@@ -26,6 +26,8 @@ export default defineConfig({
         "src/db/**",
         "src/features/events/mutations.ts",
         "src/features/calendar/useEvents.ts",
+        "src/features/calendar/WeekView.tsx",
+        "src/features/calendar/EventBlock.tsx",
         "src/app/Providers.tsx",
         "src/vite-env.d.ts",
         "src/main.tsx",
