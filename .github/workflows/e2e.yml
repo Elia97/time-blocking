@@ -17,7 +17,7 @@ on:
       - ".release-please-manifest.json"
       - "release-please-config.json"
   pull_request:
-    branches: [main]
+    branches: [main, "feat/**"]
     paths-ignore:
       - "**/*.md"
       - ".github/ISSUE_TEMPLATE/**"
@@ -38,32 +38,13 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  desktop:
-    name: WebdriverIO + tauri-driver
+  playwright:
+    name: Playwright (Vite + mock IPC)
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Setup Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache Rust toolchain & target
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: src-tauri -> target
-          shared-key: e2e
-          cache-bin: true
-
-      - name: Cache apt packages
-        uses: awalsh128/cache-apt-pkgs-action@v1
-        with:
-          packages: libwebkit2gtk-4.1-dev build-essential libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev patchelf webkit2gtk-driver xvfb
-          version: 1.0
-
-      - name: Install tauri-driver
-        run: cargo install tauri-driver --locked
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -77,16 +58,28 @@ jobs:
       - name: Install Node dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build Tauri release binary
-        run: pnpm tauri build --no-bundle
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml') }}
 
-      - name: Run E2E specs under Xvfb
-        run: xvfb-run --auto-servernum pnpm e2e
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install --with-deps chromium
 
-      - name: Upload E2E logs on failure
+      - name: Install Playwright OS deps
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
+
+      - name: Run Playwright tests
+        run: pnpm e2e
+
+      - name: Upload Playwright report on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: e2e-logs
-          path: e2e/logs/**
+          name: playwright-report
+          path: playwright-report/
           if-no-files-found: ignore
