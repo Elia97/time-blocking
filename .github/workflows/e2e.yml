@@ -1,0 +1,92 @@
+name: E2E
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**/*.md"
+      - ".github/ISSUE_TEMPLATE/**"
+      - ".github/pull_request_template.md"
+      - ".github/dependabot.yml"
+      - ".editorconfig"
+      - ".nvmrc"
+      - ".vscode/**"
+      - ".prettierignore"
+      - "prettier.config.mjs"
+      - "commitlint.config.mjs"
+      - ".release-please-manifest.json"
+      - "release-please-config.json"
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - "**/*.md"
+      - ".github/ISSUE_TEMPLATE/**"
+      - ".github/pull_request_template.md"
+      - ".github/dependabot.yml"
+      - ".editorconfig"
+      - ".nvmrc"
+      - ".vscode/**"
+      - ".prettierignore"
+      - "prettier.config.mjs"
+      - "commitlint.config.mjs"
+      - ".release-please-manifest.json"
+      - "release-please-config.json"
+  workflow_dispatch:
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  desktop:
+    name: WebdriverIO + tauri-driver
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust toolchain & target
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+          shared-key: e2e
+          cache-bin: true
+
+      - name: Cache apt packages
+        uses: awalsh128/cache-apt-pkgs-action@v1
+        with:
+          packages: libwebkit2gtk-4.1-dev build-essential libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev patchelf webkit2gtk-driver xvfb
+          version: 1.0
+
+      - name: Install tauri-driver
+        run: cargo install tauri-driver --locked
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install Node dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Tauri release binary
+        run: pnpm tauri build --no-bundle
+
+      - name: Run E2E specs under Xvfb
+        run: xvfb-run --auto-servernum pnpm e2e
+
+      - name: Upload E2E logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-logs
+          path: e2e/logs/**
+          if-no-files-found: ignore

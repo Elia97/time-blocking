@@ -1,0 +1,42 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "src/main.tsx",
+    "src/test/setup.ts",
+    "vitest.config.ts",
+    "drizzle.config.ts",
+    "prettier.config.mjs",
+    "eslint.config.js",
+    "commitlint.config.mjs",
+    "wdio.conf.ts",
+    "e2e/specs/**/*.e2e.ts"
+  ],
+  "project": ["src/**/*.{ts,tsx}", "e2e/**/*.ts"],
+  "ignore": [
+    "src-tauri/**",
+    "src/components/ui/**",
+    "src/vite-env.d.ts",
+    "src/db/client.ts",
+    "e2e/logs/**"
+  ],
+  "ignoreDependencies": [
+    "@tauri-apps/plugin-sql",
+    "tw-animate-css",
+    "prettier-plugin-tailwindcss",
+    "@vitest/coverage-v8",
+    "@vitest/ui",
+    "@dnd-kit/core",
+    "@dnd-kit/modifiers",
+    "@dnd-kit/utilities",
+    "@hookform/resolvers",
+    "react-hook-form",
+    "zod",
+    "date-fns",
+    "date-fns-tz",
+    "rrule",
+    "zustand",
+    "@tauri-apps/api",
+    "@types/mocha",
+    "@wdio/local-runner"
+  ]
+}

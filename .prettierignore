@@ -1,0 +1,12 @@
+node_modules
+dist
+src-tauri/target
+src-tauri/gen
+src-tauri/migrations
+*.sql
+pnpm-lock.yaml
+*.lock
+*.log
+.husky/_
+coverage
+e2e/logs
