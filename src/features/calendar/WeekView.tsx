@@ -42,7 +42,7 @@ export function WeekView() {
           onCreate={(day) => openCreateDialog({ startAt: startOfDay(day).getTime(), allDay: true })}
           onEdit={openEditDialog}
         />
-        <ScrollArea className="flex-1">
+        <ScrollArea className="min-h-0 flex-1">
           <div className="flex">
             <TimeGutter />
             <div
