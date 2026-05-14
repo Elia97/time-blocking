@@ -4,9 +4,11 @@ A personal time-blocking desktop application. Local-first, single-user, no cloud
 backend. Built to provide the polish of Google Calendar / Notion Calendar with
 none of the deployment overhead.
 
-> Status: **Phase 0 (scaffolding) complete.** The app shell, theme switcher,
-> database schema, and Google Calendar sync wiring points are stubbed out and
-> ready for Phase 1 to start building the calendar grid.
+> Status: **Phase 1 (calendar core) complete** — released as `v0.1.0`. Week
+> view with overlap layout, event CRUD via Dialog + react-hook-form + zod,
+> drag-to-move and top/bottom resize via dnd-kit, all-day strip, all backed
+> by SQLite/Drizzle and TanStack Query. Phase 2 (Day/Month views, categories,
+> tags, quick capture, recurrence) is the active work.
 
 ## Stack
 
@@ -225,7 +227,7 @@ the implementation plan.
 > `ignoreDependencies`** so dead-code detection stays meaningful. Each phase
 > below ends with the deps it's expected to "unlock".
 
-### Phase 0 — Scaffold ✅ (current)
+### Phase 0 — Scaffold ✅
 
 **Desktop shell & frontend**
 
@@ -261,17 +263,17 @@ the implementation plan.
 - [x] PR template + bug / feature issue templates + blank-issue lockout
 - [x] Editor / runtime pinning: `.editorconfig`, `.nvmrc`, `engines`, `packageManager`, `.vscode/settings.json`
 
-### Phase 1 — Calendar core
+### Phase 1 — Calendar core ✅
 
-- [ ] Week view component (`src/features/calendar/WeekView.tsx`) — CSS Grid 7 columns × 96 fifteen-minute rows
-- [ ] Event block component with snapping, min duration, overlap layout (parallel events split horizontally)
-- [ ] CRUD events via shadcn `Dialog` + `react-hook-form` + `zod` schema
-- [ ] `dnd-kit` for drag-to-move, custom pointer handlers for top/bottom resize
-- [ ] `TanStack Query` hooks (`useEvents`, `useCreateEvent`, ...) hitting the Drizzle proxy
-- [ ] Zustand UI store (selected date range, draft event, drag state)
-- [ ] Event-level unit tests + extend Playwright smoke to create-drag-resize
+- [x] Week view component (`src/features/calendar/WeekView.tsx`) — CSS Grid 7 columns × 96 fifteen-minute rows
+- [x] Event block component with snapping, min duration, overlap layout (parallel events split horizontally)
+- [x] CRUD events via shadcn `Dialog` + `react-hook-form` + `zod` schema
+- [x] `dnd-kit` for drag-to-move, custom pointer handlers for top/bottom resize
+- [x] `TanStack Query` hooks (`useEvents`, `useCreateEvent`, ...) hitting the Drizzle proxy
+- [x] Zustand UI stores (`weekNavigationStore` for week anchor, `eventDialogStore` for create/edit dialog)
+- [x] Event-level unit tests + Playwright smoke for dialog flow
 
-**knip cleanup at end of phase:** `@dnd-kit/core`, `@dnd-kit/modifiers`, `@dnd-kit/utilities`, `react-hook-form`, `@hookform/resolvers`, `zod`, `date-fns`, `date-fns-tz`, `zustand`, `src/db/client.ts` from `ignore`.
+**knip cleanup done:** dropped `@dnd-kit/core`, `react-hook-form`, `@hookform/resolvers`, `zod`, `date-fns`, `zustand` from `ignoreDependencies`. Remaining ignored deps (`@dnd-kit/modifiers`, `@dnd-kit/utilities`, `date-fns-tz`, `rrule`) are queued for Phase 2/4. `src/db/client.ts` stays in `ignore` (entry point that knip can't reach from static analysis).
 
 ### Phase 2 — Views & organization
 
