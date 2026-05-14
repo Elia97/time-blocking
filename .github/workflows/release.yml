@@ -31,7 +31,7 @@ jobs:
           # - { name: macos-aarch64,  os: macos-14,     target: aarch64-apple-darwin }
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install Linux system dependencies
         if: runner.os == 'Linux'
