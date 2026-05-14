@@ -17,7 +17,7 @@ on:
       - ".release-please-manifest.json"
       - "release-please-config.json"
   pull_request:
-    branches: [main]
+    branches: [main, "feat/**"]
     paths-ignore:
       - "**/*.md"
       - ".github/ISSUE_TEMPLATE/**"
