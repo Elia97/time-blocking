@@ -11,7 +11,8 @@ node_modules
 dist
 dist-ssr
 coverage
-e2e/logs
+playwright-report
+test-results
 *.local
 
 # Environment

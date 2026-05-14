@@ -66,11 +66,10 @@ sudo apt update && sudo apt install -y \
   patchelf
 ```
 
-For E2E tests you also need the WebKit WebDriver and `tauri-driver`:
+E2E tests run with Playwright against the Vite dev server (no native build, no WebDriver). The first run downloads the Chromium browser into the local Playwright cache:
 
 ```bash
-sudo apt install -y webkit2gtk-driver
-cargo install tauri-driver --locked
+pnpm exec playwright install --with-deps chromium
 ```
 
 > On Fedora / Arch the package names differ — see the
@@ -121,9 +120,8 @@ pnpm test              # Vitest in watch mode
 pnpm test:run          # Vitest single run (CI)
 pnpm test:ui           # Vitest browser UI
 pnpm test:coverage     # Vitest with v8 coverage
-pnpm e2e:build         # Build the release binary used by tauri-driver
-pnpm e2e               # Run WebdriverIO + tauri-driver smoke specs
-pnpm typecheck:e2e     # Type-check e2e specs and wdio.conf.ts
+pnpm e2e               # Playwright against Vite dev server with mocked Tauri IPC
+pnpm e2e:ui            # Playwright UI mode for debugging specs
 pnpm knip              # Detect unused files, exports, dependencies
 pnpm check             # Aggregate: typecheck + lint + format:check + test:run + knip
 ```
@@ -136,7 +134,7 @@ pnpm check             # Aggregate: typecheck + lint + format:check + test:run +
 - **knip** (`knip.json`) — Phase-1+ dependencies (dnd-kit, rrule, zustand, ...) are temporarily allow-listed and should be removed from `ignoreDependencies` as each phase wires them in.
 - **Husky + lint-staged** (`.husky/pre-commit`, `.lintstagedrc.json`) — runs `eslint --fix` + `prettier --write` on staged `.ts/.tsx/.js/.mjs/.cjs` files, and `prettier --write` on staged docs/JSON/CSS. Husky activates after `pnpm install` once a `.git/` directory exists (see [First-time setup](#first-time-setup)).
 - **commitlint** (`commitlint.config.mjs`, `.husky/commit-msg`) — enforces [Conventional Commits](https://www.conventionalcommits.org/). Accepted types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`. Example: `feat(calendar): add week view skeleton`.
-- **WebdriverIO + tauri-driver** (`wdio.conf.ts`, `e2e/specs/`) — drives the real Tauri desktop binary via the WebDriver protocol. Mocha + Chai-style `expect`. Specs live under `e2e/specs/` and use `@wdio/globals`. The runner spawns `tauri-driver` in `onPrepare` and kills it in `onComplete`. Requires `webkit2gtk-driver` (apt) and `tauri-driver` (cargo). Run with `pnpm e2e:build && pnpm e2e`.
+- **Playwright** (`playwright.config.ts`, `tests/playwright/`) — runs Chromium against `pnpm dev` (Vite). Tauri IPC is mocked in `src/test/e2e-mock.ts` via `@tauri-apps/api/mocks`, gated on `VITE_E2E=true` so production builds are untouched. No native binary, no WebDriver, no Xvfb.
 - **Pre-push hook** (`.husky/pre-push`) — runs the full `pnpm check` before every push. Safety net before sharing code.
 - **EditorConfig** + `.nvmrc` + `engines` + `packageManager` — keep editors, Node version, and the pnpm release pinned across machines and CI.
 
@@ -147,7 +145,7 @@ Four GitHub Actions workflows live under `.github/workflows/`:
 | Workflow             | Trigger                              | What it does                                                                                                                                                                                                                                                         |
 | -------------------- | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `ci.yml`             | push & PR on `main`                  | `pnpm check` — typecheck (src + e2e) + lint + format:check + Vitest with v8 coverage at 80% threshold + knip                                                                                                                                                         |
-| `e2e.yml`            | push & PR on `main`, manual dispatch | Installs WebKitGTK driver + caches Rust, `cargo install tauri-driver`, builds the release binary with `--no-bundle`, runs WebdriverIO specs under `xvfb`                                                                                                             |
+| `e2e.yml`            | push & PR on `main`, manual dispatch | Installs Node + pnpm, caches the Playwright browser bundle, runs `pnpm e2e` against the Vite dev server with mocked Tauri IPC.                                                                                                                                       |
 | `release-please.yml` | push on `main`, manual dispatch      | Reads your Conventional Commits and opens/maintains a "Release PR" that bumps `package.json` + `src-tauri/tauri.conf.json` + `src-tauri/Cargo.toml` and writes `CHANGELOG.md`. Merging the Release PR creates the `vX.Y.Z` tag and the corresponding GitHub Release. |
 | `release.yml`        | tag `v*`, manual dispatch            | Builds the Tauri bundle (Linux `.deb`, `.rpm`, `.AppImage` by default) and **attaches** the artifacts to the GitHub Release created by release-please. Uncomment matrix entries to also build Windows / macOS.                                                       |
 
@@ -248,7 +246,7 @@ the implementation plan.
 - [x] Prettier 3 (no-semi, 100 col, Tailwind class sort plugin)
 - [x] ESLint 10 flat config (typescript-eslint, react, react-hooks, react-refresh, jsx-a11y)
 - [x] Vitest 4 + Testing Library + jsdom — **v8 coverage with 80% threshold enforced**
-- [x] WebdriverIO 9 + tauri-driver for real-binary E2E (smoke specs run under `xvfb` in CI)
+- [x] Playwright smoke E2E against Vite dev server with mocked Tauri IPC (no native build / WebDriver / Xvfb)
 - [x] knip for unused files / exports / deps
 - [x] Husky 9 hooks: `pre-commit` (lint-staged), `commit-msg` (commitlint), `pre-push` (`pnpm check`)
 - [x] commitlint — Conventional Commits enforced on every commit
@@ -256,7 +254,7 @@ the implementation plan.
 **CI/CD**
 
 - [x] `ci.yml` — typecheck + lint + format:check + Vitest with coverage + knip
-- [x] `e2e.yml` — Rust toolchain caching, `cargo install tauri-driver`, WebdriverIO under Xvfb
+- [x] `e2e.yml` — pnpm + Node + cached Playwright Chromium, `pnpm e2e` against Vite with mocked Tauri IPC
 - [x] `release-please.yml` — opens a Release PR from Conventional Commits, keeps `package.json` + `tauri.conf.json` + `Cargo.toml` versions in sync, writes `CHANGELOG.md`
 - [x] `release.yml` — builds Tauri bundles on tag `v*` and attaches `.deb` / `.rpm` / `.AppImage` to the GitHub Release
 - [x] Dependabot — weekly PRs for npm (dev + runtime groups), cargo, github-actions
@@ -271,7 +269,7 @@ the implementation plan.
 - [ ] `dnd-kit` for drag-to-move, custom pointer handlers for top/bottom resize
 - [ ] `TanStack Query` hooks (`useEvents`, `useCreateEvent`, ...) hitting the Drizzle proxy
 - [ ] Zustand UI store (selected date range, draft event, drag state)
-- [ ] Event-level unit tests + extend WebdriverIO smoke to create-drag-resize
+- [ ] Event-level unit tests + extend Playwright smoke to create-drag-resize
 
 **knip cleanup at end of phase:** `@dnd-kit/core`, `@dnd-kit/modifiers`, `@dnd-kit/utilities`, `react-hook-form`, `@hookform/resolvers`, `zod`, `date-fns`, `date-fns-tz`, `zustand`, `src/db/client.ts` from `ignore`.
 

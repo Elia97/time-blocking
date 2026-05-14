@@ -64,9 +64,9 @@ export default tseslint.config(
     },
   },
   {
-    files: ["e2e/**/*.ts", "wdio.conf.ts"],
+    files: ["tests/playwright/**/*.ts", "playwright.config.ts"],
     languageOptions: {
-      globals: { ...globals.node, ...globals.mocha },
+      globals: { ...globals.node, ...globals.browser },
     },
   },
   {
