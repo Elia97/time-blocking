@@ -1,6 +1,7 @@
 import { Sidebar } from "@/app/Sidebar"
 import { Topbar } from "@/app/Topbar"
 import { WeekView } from "@/features/calendar/WeekView"
+import { EventDialog } from "@/features/events/EventDialog"
 
 export function AppShell() {
   return (
@@ -12,6 +13,7 @@ export function AppShell() {
           <WeekView />
         </main>
       </div>
+      <EventDialog />
     </div>
   )
 }

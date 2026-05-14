@@ -50,4 +50,24 @@ describe("calendarUiStore", () => {
     expect(a.getDate()).toBe(1)
     expect(a.getMonth()).toBe(5)
   })
+
+  it("openCreateDialog stores defaults", () => {
+    useCalendarUiStore.getState().openCreateDialog({ startAt: 1000, endAt: 2000 })
+    expect(useCalendarUiStore.getState().dialogState).toEqual({
+      mode: "create",
+      defaults: { startAt: 1000, endAt: 2000 },
+    })
+  })
+
+  it("openEditDialog stores the event", () => {
+    const event = { id: "e1", title: "Foo" } as never
+    useCalendarUiStore.getState().openEditDialog(event)
+    expect(useCalendarUiStore.getState().dialogState).toEqual({ mode: "edit", event })
+  })
+
+  it("closeDialog resets to null", () => {
+    useCalendarUiStore.getState().openCreateDialog({ startAt: 0, endAt: 0 })
+    useCalendarUiStore.getState().closeDialog()
+    expect(useCalendarUiStore.getState().dialogState).toBeNull()
+  })
 })

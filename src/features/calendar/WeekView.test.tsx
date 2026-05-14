@@ -91,7 +91,7 @@ describe("WeekView", () => {
     expect(a.getAttribute("data-column")).not.toBe(b.getAttribute("data-column"))
   })
 
-  it("skips all-day events", () => {
+  it("renders all-day events in the all-day strip, not the grid", () => {
     const monday = new Date(2026, 4, 11, 0, 0).getTime()
     mockEvents([
       makeEvent({
@@ -104,7 +104,10 @@ describe("WeekView", () => {
     ])
 
     renderWithQueryClient(<WeekView />)
-    expect(screen.queryByText("All Day Thing")).not.toBeInTheDocument()
+    const chip = screen.getByText("All Day Thing")
+    expect(chip).toBeInTheDocument()
+    expect(chip.closest("[data-event-block]")).toBeNull()
+    expect(chip.closest("[data-testid='all-day-strip']")).not.toBeNull()
   })
 
   it("renders a current-time indicator on today's column only", () => {

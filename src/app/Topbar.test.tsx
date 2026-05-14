@@ -33,9 +33,14 @@ describe("Topbar", () => {
     expect(screen.getByRole("button", { name: "Month" })).toBeDisabled()
   })
 
-  it("keeps the New event action disabled (slice 1b)", () => {
+  it("opens the create dialog when New event is clicked", async () => {
+    const user = userEvent.setup()
     renderWithProviders(<Topbar />)
-    expect(screen.getByRole("button", { name: /new event/i })).toBeDisabled()
+    await user.click(screen.getByRole("button", { name: /new event/i }))
+    expect(useCalendarUiStore.getState().dialogState).toEqual({
+      mode: "create",
+      defaults: undefined,
+    })
   })
 
   it("exposes the theme toggle", () => {

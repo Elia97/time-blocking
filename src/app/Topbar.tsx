@@ -2,7 +2,6 @@ import { ChevronLeft, ChevronRight, Plus } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { ThemeToggle } from "@/app/ThemeToggle"
 import { formatWeekRange } from "@/lib/date"
 import { useCalendarUiStore } from "@/stores/calendarUiStore"
@@ -14,6 +13,7 @@ export function Topbar() {
   const goToPrevWeek = useCalendarUiStore((s) => s.goToPrevWeek)
   const goToNextWeek = useCalendarUiStore((s) => s.goToNextWeek)
   const goToToday = useCalendarUiStore((s) => s.goToToday)
+  const openCreateDialog = useCalendarUiStore((s) => s.openCreateDialog)
 
   return (
     <header className="bg-background border-border flex h-14 items-center gap-3 border-b px-4">
@@ -58,17 +58,10 @@ export function Topbar() {
         ))}
       </div>
       <div className="ml-auto flex items-center gap-2">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span>
-              <Button size="sm" variant="default" disabled>
-                <Plus className="size-4" />
-                New event
-              </Button>
-            </span>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">Available in the next slice</TooltipContent>
-        </Tooltip>
+        <Button size="sm" variant="default" onClick={() => openCreateDialog()}>
+          <Plus className="size-4" />
+          New event
+        </Button>
         <ThemeToggle />
       </div>
     </header>

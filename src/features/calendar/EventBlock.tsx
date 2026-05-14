@@ -12,6 +12,7 @@ export type EventBlockProps = {
   totalColumns: number
   startLabel: string
   endLabel: string
+  onClick?: () => void
 }
 
 export function EventBlock({
@@ -23,6 +24,7 @@ export function EventBlock({
   totalColumns,
   startLabel,
   endLabel,
+  onClick,
 }: EventBlockProps) {
   const style = useMemo(() => {
     const widthPct = 100 / totalColumns
@@ -37,13 +39,16 @@ export function EventBlock({
   }, [topPx, heightPx, column, totalColumns, color])
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
+    <button
+      type="button"
       style={style}
+      onClick={(e) => {
+        e.stopPropagation()
+        onClick?.()
+      }}
       className={cn(
-        "border-primary/40 bg-primary/15 text-foreground absolute z-10 flex flex-col gap-0.5",
-        "overflow-hidden rounded-md border-l-2 px-1.5 py-1 text-xs leading-tight",
+        "border-primary/40 bg-primary/15 text-foreground absolute z-10 flex flex-col items-stretch gap-0.5",
+        "cursor-pointer overflow-hidden rounded-md border-l-2 px-1.5 py-1 text-left text-xs leading-tight",
         "hover:bg-primary/25 focus:ring-ring focus:ring-2 focus:outline-none",
       )}
       data-event-block
@@ -54,6 +59,6 @@ export function EventBlock({
       <span className="text-muted-foreground truncate text-[10px]">
         {startLabel}-{endLabel}
       </span>
-    </div>
+    </button>
   )
 }

@@ -22,9 +22,6 @@
     "@dnd-kit/core",
     "@dnd-kit/modifiers",
     "@dnd-kit/utilities",
-    "@hookform/resolvers",
-    "react-hook-form",
-    "zod",
     "date-fns-tz",
     "rrule"
   ]
