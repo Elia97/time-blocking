@@ -21,7 +21,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "pnpm dev",
+    command: "pnpm dev --host 127.0.0.1",
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,
