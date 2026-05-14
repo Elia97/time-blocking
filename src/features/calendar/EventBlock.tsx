@@ -44,7 +44,7 @@ export function EventBlock({
       height: `${Math.max(MIN_EVENT_HEIGHT_PX, heightPx)}px`,
       left: `calc(${leftPct}% + 2px)`,
       width: `calc(${widthPct}% - 4px)`,
-      backgroundColor: event.color ?? undefined,
+      borderLeftColor: event.color ?? undefined,
     }
     if (transform) {
       base.transform = `translate3d(${transform.x}px, ${transform.y}px, 0)`
@@ -74,7 +74,7 @@ export function EventBlock({
       tabIndex={0}
       className={cn(
         "border-primary/40 bg-primary/15 text-foreground absolute z-10 flex flex-col items-stretch gap-0.5",
-        "cursor-grab overflow-hidden rounded-md border-l-2 px-1.5 py-1 text-left text-xs leading-tight",
+        "cursor-grab overflow-hidden rounded-md border-l-4 px-2 py-1 text-left text-sm leading-snug",
         "hover:bg-primary/25 focus:ring-ring focus:ring-2 focus:outline-none",
         isDragging && "cursor-grabbing opacity-70 shadow-lg",
       )}
@@ -85,8 +85,8 @@ export function EventBlock({
     >
       <ResizeHandle direction="top" onPointerDown={onResizeStart} />
       <span className="truncate font-medium">{event.title}</span>
-      <span className="text-muted-foreground truncate text-[10px]">
-        {startLabel}-{endLabel}
+      <span className="text-muted-foreground truncate text-xs">
+        {startLabel}–{endLabel}
       </span>
       <ResizeHandle direction="bottom" onPointerDown={onResizeStart} />
     </div>
