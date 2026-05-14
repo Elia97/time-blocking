@@ -55,6 +55,13 @@ describe("layoutOverlaps", () => {
     expect(out.get("inner")?.totalColumns).toBe(2)
   })
 
+  it("breaks ties by end descending when starts match", () => {
+    // a starts at 0 ending 100, b starts at 0 ending 50 → sort puts a before b
+    const out = layoutOverlaps([ev("b", 0, 50), ev("a", 0, 100)])
+    expect(out.get("a")?.column).toBe(0)
+    expect(out.get("b")?.column).toBe(1)
+  })
+
   it("is stable regardless of input order", () => {
     const a = layoutOverlaps([ev("a", 0, 100), ev("b", 50, 150), ev("c", 200, 300)])
     const b = layoutOverlaps([ev("c", 200, 300), ev("b", 50, 150), ev("a", 0, 100)])

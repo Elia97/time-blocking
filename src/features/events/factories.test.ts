@@ -23,6 +23,32 @@ describe("newEventFromForm", () => {
     expect(row.updatedAt).toBe(1000)
   })
 
+  it("marks the row as all-day when the form flag is on", () => {
+    const row = newEventFromForm(
+      {
+        title: "Holiday",
+        date: "2026-05-14",
+        allDay: true,
+      },
+      0,
+    )
+    expect(row.allDay).toBe(1)
+  })
+
+  it("treats undefined description as null", () => {
+    const row = newEventFromForm(
+      {
+        title: "x",
+        date: "2026-05-14",
+        startTime: "09:00",
+        endTime: "10:00",
+        allDay: false,
+      },
+      0,
+    )
+    expect(row.description).toBeNull()
+  })
+
   it("normalizes empty description and color to null", () => {
     const row = newEventFromForm(
       {
@@ -41,6 +67,29 @@ describe("newEventFromForm", () => {
   })
 })
 
+describe("default nowMs", () => {
+  it("falls back to Date.now() when omitted", () => {
+    const before = Date.now()
+    const row = newEventFromForm({
+      title: "x",
+      date: "2026-05-14",
+      startTime: "09:00",
+      endTime: "10:00",
+      allDay: false,
+    })
+    expect(row.createdAt).toBeGreaterThanOrEqual(before)
+
+    const patch = eventUpdateFromForm({
+      title: "y",
+      date: "2026-05-14",
+      startTime: "09:00",
+      endTime: "10:00",
+      allDay: false,
+    })
+    expect(patch.updatedAt).toBeGreaterThanOrEqual(before)
+  })
+})
+
 describe("eventUpdateFromForm", () => {
   it("flips dirty and updates timestamps", () => {
     const patch = eventUpdateFromForm(
@@ -56,5 +105,34 @@ describe("eventUpdateFromForm", () => {
     expect(patch.dirty).toBe(1)
     expect(patch.updatedAt).toBe(2000)
     expect(patch.title).toBe("Foo")
+  })
+
+  it("marks the patch as all-day when the form flag is on", () => {
+    const patch = eventUpdateFromForm(
+      {
+        title: "Holiday",
+        date: "2026-05-14",
+        allDay: true,
+      },
+      0,
+    )
+    expect(patch.allDay).toBe(1)
+  })
+
+  it("preserves valid description and color", () => {
+    const patch = eventUpdateFromForm(
+      {
+        title: "Foo",
+        description: "ctx",
+        date: "2026-05-14",
+        startTime: "09:00",
+        endTime: "10:00",
+        allDay: false,
+        color: "#ff0000",
+      },
+      0,
+    )
+    expect(patch.description).toBe("ctx")
+    expect(patch.color).toBe("#ff0000")
   })
 })

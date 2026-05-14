@@ -1,27 +1,7 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "entry": [
-    "src/main.tsx",
-    "src/test/setup.ts",
-    "vitest.config.ts",
-    "drizzle.config.ts",
-    "prettier.config.mjs",
-    "eslint.config.js",
-    "commitlint.config.mjs",
-    "playwright.config.ts",
-    "tests/playwright/**/*.spec.ts"
-  ],
+  "entry": ["tests/playwright/**/*.spec.ts"],
   "project": ["src/**/*.{ts,tsx}", "tests/**/*.ts"],
-  "ignore": ["src-tauri/**", "src/components/ui/**", "src/vite-env.d.ts", "src/db/client.ts"],
-  "ignoreDependencies": [
-    "@tauri-apps/plugin-sql",
-    "tw-animate-css",
-    "prettier-plugin-tailwindcss",
-    "@vitest/coverage-v8",
-    "@vitest/ui",
-    "@dnd-kit/modifiers",
-    "@dnd-kit/utilities",
-    "date-fns-tz",
-    "rrule"
-  ]
+  "ignore": ["src/components/ui/**", "src/db/client.ts"],
+  "ignoreDependencies": ["@dnd-kit/modifiers", "@dnd-kit/utilities", "date-fns-tz", "rrule"]
 }

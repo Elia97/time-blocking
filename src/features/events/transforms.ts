@@ -29,8 +29,9 @@ export function formValuesToTimeRange(values: EventFormValues): {
     const dayStart = startOfDay(parse(values.date, "yyyy-MM-dd", new Date()))
     return { startAt: dayStart.getTime(), endAt: addDays(dayStart, 1).getTime() }
   }
-  const start = combineDateTime(values.date, values.startTime ?? "00:00")
-  const end = combineDateTime(values.date, values.endTime ?? "00:00")
+  // Non-allDay path: zod refinement guarantees both times are valid strings.
+  const start = combineDateTime(values.date, values.startTime as string)
+  const end = combineDateTime(values.date, values.endTime as string)
   return { startAt: start.getTime(), endAt: end.getTime() }
 }
 

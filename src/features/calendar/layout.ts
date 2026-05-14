@@ -39,7 +39,8 @@ export function buildDayLayout(dayStart: Date, dayEnd: Date, all: EventRow[]): P
       event,
       topPx: minutesToPx(topMin),
       heightPx: minutesToPx(durationMin),
-      layout: positions.get(event.id) ?? { column: 0, totalColumns: 1 },
+      // layoutOverlaps always emits a position for every input id, so the lookup never misses.
+      layout: positions.get(event.id) as OverlapPosition,
     }
   })
 }

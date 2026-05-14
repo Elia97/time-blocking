@@ -85,6 +85,15 @@ describe("buildDayLayout", () => {
     expect(out[0].heightPx).toBe(minutesToPx(60))
   })
 
+  it("enforces a 15-minute minimum height for shorter events", () => {
+    const start = new Date(2026, 4, 11, 9, 0).getTime()
+    const end = new Date(2026, 4, 11, 9, 5).getTime() // 5-minute event
+    const out = buildDayLayout(dayStart(monday), dayEnd(monday), [
+      makeEvent({ id: "tiny", startAt: start, endAt: end }),
+    ])
+    expect(out[0].heightPx).toBe(minutesToPx(15))
+  })
+
   it("positions a regular event at the correct offset", () => {
     const start = new Date(2026, 4, 11, 9, 30).getTime()
     const end = new Date(2026, 4, 11, 10, 0).getTime()

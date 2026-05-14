@@ -3,9 +3,14 @@ import { useEventDialog, type EventDialogState } from "@/stores/eventDialogStore
 import { EventDialogForm } from "./EventDialogForm"
 
 function dialogKey(state: NonNullable<EventDialogState>): string {
-  return state.mode === "edit"
-    ? `edit-${state.event.id}`
-    : `create-${state.defaults?.startAt ?? "now"}`
+  if (state.mode === "edit") {
+    return `edit-${state.event.id}`
+  }
+  const startAt = state.defaults?.startAt
+  if (startAt === undefined) {
+    return "create-now"
+  }
+  return `create-${startAt}`
 }
 
 export function EventDialog() {
