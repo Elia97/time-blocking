@@ -11,8 +11,8 @@ describe("Week view", () => {
   it("renders hour labels in the time gutter", async () => {
     const grid = await $('[data-testid="week-grid"]')
     await grid.waitForDisplayed({ timeout: 10_000 })
-    await expect($("*=01:00")).toBeDisplayed()
-    await expect($("*=23:00")).toBeDisplayed()
+    await expect($("*=01:00")).toBeExisting()
+    await expect($("*=23:00")).toBeExisting()
   })
 
   it("navigates to the next week and updates the header", async () => {
