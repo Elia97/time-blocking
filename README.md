@@ -275,21 +275,30 @@ the implementation plan.
 
 **knip cleanup done:** dropped `@dnd-kit/core`, `react-hook-form`, `@hookform/resolvers`, `zod`, `date-fns`, `zustand` from `ignoreDependencies`. Remaining ignored deps (`@dnd-kit/modifiers`, `@dnd-kit/utilities`, `date-fns-tz`, `rrule`) are queued for Phase 2/4. `src/db/client.ts` stays in `ignore` (entry point that knip can't reach from static analysis).
 
-### Phase 2 — Views & organization
+### Phase 2a — Views, organization & week-view UX
 
 - [ ] Day view (single wide column) and Month view (mini events, click → day)
 - [ ] Categories CRUD with color picker + visibility toggle in the sidebar
 - [ ] Tags CRUD + multi-tag filter chips in the topbar
+- [ ] Sidebar finalized — replace Phase-0 placeholders with real category list, tag list, and visibility/filter controls
+- [ ] Mark events as done (checkbox on the block + `completed_at` column on `events`, completed events styled distinctly in the grid)
+- [ ] Week-view UX: half-hour slot hover highlight + click-drag on empty slot to create event with custom duration (currently click → fixed 30 min)
+- [ ] Settings panel with at least: configurable grid start/end hours (e.g. show only 06:00–22:00), week start day, default new-event duration, time format 12/24
+- [ ] Keyboard shortcuts: `←/→` change week, `T` today, `N` new event, `Esc` close dialog (Google-Calendar style)
+
+### Phase 2b — Advanced input
+
 - [ ] Quick capture overlay (`Cmd/Ctrl+Shift+Space`) with natural-language parser ("Lunch 12-13 tomorrow")
 - [ ] Basic recurrence (daily / weekly) via `rrule.js`, with single-instance exception support
 
-**knip cleanup at end of phase:** `rrule`.
+**knip cleanup at end of Phase 2:** `rrule`.
 
 ### Phase 3 — Tracking & Pomodoro
 
 - [ ] Pomodoro timer in a dedicated Web Worker (configurable 25/5/15, automatic cycling, drift-free)
 - [ ] Per-event start / stop tracking → `time_entries`
 - [ ] Distinction between planned (event duration) and actual (sum of `time_entries`) minutes
+- [ ] Search across events by title / description (`Cmd/Ctrl+K` command palette)
 - [ ] Stats panel: time per category / tag, last 7 / 30 days, Recharts bar + donut charts
 
 **Deps to add this phase:** `recharts`.
@@ -312,6 +321,8 @@ the implementation plan.
 - [ ] ICS export of the entire database
 - [ ] Global shortcut for quick capture via `tauri-plugin-global-shortcut`
 - [ ] Onboarding (3-step: theme → first category → connect Google)
+- [ ] Custom window title bar (disable native decorations, draw a React title bar that follows the app theme on all platforms)
+- [ ] Trash / restore: UI to browse soft-deleted events (using existing `deletedAt`) with restore + permanent delete
 - [ ] Coverage threshold bump to 90% if practical at this stage
 
 ## License
