@@ -8,6 +8,7 @@ import { useEventDialog } from "@/stores/eventDialogStore"
 import { useWeekNavigation } from "@/stores/weekNavigationStore"
 
 const views = ["Day", "Week", "Month"] as const
+const ACTIVE_VIEW: (typeof views)[number] = "Week"
 
 export function Topbar() {
   const anchorDate = useWeekNavigation((s) => s.anchorDate)
@@ -44,19 +45,22 @@ export function Topbar() {
         </div>
         <Separator orientation="vertical" className="h-6" />
         <div className="bg-muted text-muted-foreground inline-flex h-8 items-center rounded-md p-1 text-xs">
-          {views.map((view, index) => (
-            <button
-              key={view}
-              disabled={index !== 1}
-              className={
-                index === 1
-                  ? "bg-background text-foreground rounded px-3 py-1 font-medium shadow-sm"
-                  : "px-3 py-1"
-              }
-            >
-              {view}
-            </button>
-          ))}
+          {views.map((view) => {
+            const isActive = view === ACTIVE_VIEW
+            return (
+              <button
+                key={view}
+                disabled={!isActive}
+                className={
+                  isActive
+                    ? "bg-background text-foreground rounded px-3 py-1 font-medium shadow-sm"
+                    : "px-3 py-1"
+                }
+              >
+                {view}
+              </button>
+            )
+          })}
         </div>
       </div>
 

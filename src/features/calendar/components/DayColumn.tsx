@@ -4,7 +4,12 @@ import type { MouseEvent, PointerEvent as ReactPointerEvent } from "react"
 
 import type { EventRow } from "@/db/schema"
 import { cn } from "@/lib/utils"
-import { HOURS_PER_DAY, HOUR_HEIGHT_PX, SLOT_HEIGHT_PX } from "../constants"
+import {
+  GRIDLINES_PER_HOUR,
+  GRIDLINE_SPACING_PX,
+  HOURS_PER_DAY,
+  SLOT_HEIGHT_PX,
+} from "../constants"
 import { EventBlock } from "../EventBlock"
 import { minutesToPx, type PositionedEvent } from "../layout"
 
@@ -62,8 +67,8 @@ export function DayColumn({
       data-testid="day-column"
       onClick={handleSlotClick}
     >
-      {Array.from({ length: HOURS_PER_DAY * 2 }, (_, i) => {
-        const isHour = i % 2 === 0
+      {Array.from({ length: HOURS_PER_DAY * GRIDLINES_PER_HOUR }, (_, i) => {
+        const isHour = i % GRIDLINES_PER_HOUR === 0
         return (
           <div
             key={i}
@@ -71,7 +76,7 @@ export function DayColumn({
               "absolute right-0 left-0 border-t",
               isHour ? "border-border/60" : "border-border/25 border-dashed",
             )}
-            style={{ top: `${(i * HOUR_HEIGHT_PX) / 2}px` }}
+            style={{ top: `${i * GRIDLINE_SPACING_PX}px` }}
             aria-hidden
           />
         )
